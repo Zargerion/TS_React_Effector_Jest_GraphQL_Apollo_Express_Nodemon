@@ -1,33 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import './App.css';
-import { GET_ALL_USERS } from "./query/user"
-import { CREATE_USER } from './mutation/user';
 import { createEvent } from 'effector';
-import { useStore } from 'effector-react'
+import { useStore } from 'effector-react';
 
+import './App.css';
+import { GET_ALL_USERS } from "./query/user";
+import { CREATE_USER } from './mutation/user';
+import { User } from './interfaces';
 import {fetchUsersFx, createUserFx, $username, $age, $users} from './stores/store';
 
 
 function App() {
-  interface User {
-    id: string;
-    username: string;
-    age: number;
-    data?: DataItem[];
-  }
-  
-  interface DataItem {
-    id: string;
-    title: string;
-    content: string;
-  }
-
-  const {data, loading, error, refetch} = useQuery(GET_ALL_USERS)
-  const [newUser] = useMutation(CREATE_USER)
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   // Local State
+
+  const {data, loading, error, refetch} = useQuery(GET_ALL_USERS)
+  const [newUser] = useMutation(CREATE_USER)
 
   const [users, setUsers]: [User[], React.Dispatch<React.SetStateAction<never[]>>] = useState([]);
   const [username, setUsername]: [string, React.Dispatch<React.SetStateAction<string>>] = useState("");
@@ -79,22 +68,26 @@ function App() {
   const setAgeEff = createEvent<number>();
   $age.on(setAgeEff, (_, age) => age);
 
+  const fetchAndSetUsers = useCallback(async () => {
+    try {
+      const { data, loading, error } = await fetchUsersFx();
+      if (!loading) {
+        setUsersEff(data);
+      }
+      if (error) {
+        console.log(error);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [setUsersEff]);
+
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const { data, loading, error } = await fetchUsersFx();
-        if (!loading) {
-          setUsersEff(data)
-        }
-        if (error) {
-          console.log(error)
-        }
-      } catch (error) {
-        console.log(error)
-      }
+      await fetchAndSetUsers();
     };
     fetchData();
-  }, [setUsersEff]);
+  }, [fetchAndSetUsers]);
 
   const addUserEff = createEvent<React.MouseEvent<HTMLButtonElement, MouseEvent>>();
   addUserEff.watch((e) => {
@@ -105,22 +98,10 @@ function App() {
   const getUsersEff = createEvent<React.MouseEvent<HTMLButtonElement, MouseEvent>>();
   const getUsersEff2 = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
-    try {
-      const { data, loading, error } = await fetchUsersFx();
-      if (!loading) {
-        setUsersEff(data)
-      }
-      if (error) {
-        console.log(error)
-      }
-    } catch (error) {
-      console.log(error)
-    }
+    await fetchAndSetUsers();
   };
   getUsersEff.watch(getUsers);
   getUsersEff2(new MouseEvent('click') as unknown as React.MouseEvent<HTMLButtonElement, MouseEvent>);
-  
-
 
   return (
     <div className="App">

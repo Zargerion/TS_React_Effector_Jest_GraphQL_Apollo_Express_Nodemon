@@ -3,18 +3,7 @@ import client from '../apollo';
 import { GET_ALL_USERS } from "../query/user"
 import { CREATE_USER } from '../mutation/user';
 import { useStore } from 'effector-react'
-interface User {
-    id: string;
-    username: string;
-    age: number;
-    data?: DataItem[];
-}
-  
-interface DataItem {
-    id: string;
-    title: string;
-    content: string;
-}
+import { User } from '../interfaces';
 
 const fetchUsersFx = createEffect(async () => {
     const response = await client.query<{ getAllUsers: User[] }>({ query: GET_ALL_USERS });
