@@ -41,9 +41,6 @@ function App() {
   if (error) {
     console.log(error)
   }
-  //if (loading) {
-  //  return <h1>Loading...</h1>
-  //}
 
   const addUser = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
@@ -106,7 +103,7 @@ function App() {
   });
 
   const getUsersEff = createEvent<React.MouseEvent<HTMLButtonElement, MouseEvent>>();
-  getUsersEff.watch((async (e) => {
+  const getUsersEff2 = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     try {
       const { data, loading, error } = await fetchUsersFx();
@@ -119,7 +116,11 @@ function App() {
     } catch (error) {
       console.log(error)
     }
-  }));
+  };
+  getUsersEff.watch(getUsers);
+  getUsersEff2(new MouseEvent('click') as unknown as React.MouseEvent<HTMLButtonElement, MouseEvent>);
+  
+
 
   return (
     <div className="App">
@@ -158,7 +159,7 @@ function App() {
             </div>
           ))}
         </div>
-      </div>
+          </div>
     </div>
   );
 }
